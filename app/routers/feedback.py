@@ -4,7 +4,8 @@ import pandas as pd
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.config import Settings, get_settings
-from app.schemas import FeedbackIn, FeedbackOut, UploadOut, UploadRow
+from app.nlp.preprocess import preprocess, preprocess_many
+from app.schemas import FeedbackIn, FeedbackOut, PreprocessOut, UploadOut, UploadRow
 
 router = APIRouter(prefix="/feedback", tags=["feedback"])
 
@@ -13,6 +14,14 @@ router = APIRouter(prefix="/feedback", tags=["feedback"])
 def submit_feedback(payload: FeedbackIn) -> FeedbackOut:
     text = payload.text.strip()
     return FeedbackOut(text=text, length=len(text))
+
+
+@router.post("/preprocess", response_model=PreprocessOut)
+def preprocess_feedback(payload: FeedbackIn) -> PreprocessOut:
+    result = preprocess(payload.text)
+    return PreprocessOut(
+        cleaned_text=result.cleaned_text, tokens=result.tokens, language=result.language
+    )
 
 
 @router.post("/upload", response_model=UploadOut)
@@ -44,6 +53,9 @@ async def upload_feedback(
             continue
         row_id = str(r["id"]).strip() if has_id else None
         rows.append(UploadRow(id=row_id or None, text=text[:2000]))
+
+    for row, pre in zip(rows, preprocess_many(r.text for r in rows)):
+        row.cleaned_text = pre.cleaned_text
 
     return UploadOut(
         total_rows=len(df), accepted=len(rows), skipped_empty=skipped, rows=rows

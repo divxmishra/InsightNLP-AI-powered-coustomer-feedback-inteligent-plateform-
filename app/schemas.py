@@ -20,6 +20,7 @@ class FeedbackOut(BaseModel):
 class UploadRow(BaseModel):
     id: str | None = None
     text: str
+    cleaned_text: str = ""
 
 
 class UploadOut(BaseModel):
@@ -27,3 +28,9 @@ class UploadOut(BaseModel):
     accepted: int
     skipped_empty: int
     rows: list[UploadRow]
+
+
+class PreprocessOut(BaseModel):
+    cleaned_text: str
+    tokens: list[str]
+    language: str

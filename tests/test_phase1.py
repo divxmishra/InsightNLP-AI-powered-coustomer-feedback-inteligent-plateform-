@@ -40,13 +40,13 @@ def test_upload_with_id_and_empty_rows():
     assert body["total_rows"] == 4
     assert body["accepted"] == 2
     assert body["skipped_empty"] == 2
-    assert body["rows"][0] == {"id": "1", "text": "Good service"}
+    assert body["rows"][0] == {"id": "1", "text": "Good service", "cleaned_text": "good service"}
 
 
 def test_upload_text_only():
     r = _upload("text\nNice\n")
     assert r.status_code == 200
-    assert r.json()["rows"] == [{"id": None, "text": "Nice"}]
+    assert r.json()["rows"] == [{"id": None, "text": "Nice", "cleaned_text": "nice"}]
 
 
 def test_upload_missing_text_column():
