@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_env: str = "development"
     max_upload_rows: int = 5000
+    models_dir: str = "models"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

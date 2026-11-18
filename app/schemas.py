@@ -34,3 +34,13 @@ class PreprocessOut(BaseModel):
     cleaned_text: str
     tokens: list[str]
     language: str
+
+
+class LabelScore(BaseModel):
+    label: str
+    score: float
+
+
+class SentimentEmotionOut(BaseModel):
+    sentiment: LabelScore
+    emotion: LabelScore

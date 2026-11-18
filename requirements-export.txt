@@ -1,0 +1,6 @@
+# Build-time only: used by scripts/export_models.py, NOT installed in the runtime image.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.6.0
+transformers==4.47.1
+onnx==1.18.0
+onnxruntime==1.20.1

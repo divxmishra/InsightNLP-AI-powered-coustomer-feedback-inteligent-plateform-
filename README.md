@@ -29,6 +29,24 @@ curl -X POST localhost:8000/feedback/preprocess -H "Content-Type: application/js
 # {"cleaned_text":"delivery late product bad not worth","tokens":[...],"language":"hinglish"}
 ```
 
+## Phase 3: Sentiment and emotion
+
+`POST /analyze/sentiment-emotion` with `{"text": "..."}` returns
+`{"sentiment": {"label": "positive|negative", "score": 0.99}, "emotion": {"label": "joy|love|anger|fear|sadness|surprise", "score": 0.95}}`.
+
+- Models: `distilbert-base-uncased-finetuned-sst-2-english` (sentiment) and `bhadresh-savani/distilbert-base-uncased-emotion` (emotion).
+- **Memory:** PyTorch + both models needs ~700-900 MB, over Render's 512 MB free tier. So the Docker build has an
+  export stage (`scripts/export_models.py`, deps in `requirements-export.txt`) that converts both models to
+  **int8-quantized ONNX** (~65 MB each). The runtime image only has `onnxruntime` + `tokenizers` (no PyTorch).
+- Models load once at startup. Input is lightly cleaned (lowercase, URLs/HTML removed, Hinglish words mapped to
+  English) but keeps stopwords and negations, which the models need.
+
+Local setup for the models (one time):
+```bash
+pip install -r requirements-export.txt
+python scripts/export_models.py models   # writes models/sentiment and models/emotion (git-ignored)
+```
+
 ### Run locally
 ```bash
 python -m venv .venv

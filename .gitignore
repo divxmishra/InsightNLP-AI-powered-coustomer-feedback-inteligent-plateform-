@@ -12,3 +12,4 @@ data/
 !evals/*.csv
 .vscode/
 .idea/
+models/

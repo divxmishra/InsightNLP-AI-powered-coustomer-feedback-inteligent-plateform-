@@ -8,3 +8,5 @@ pytest==8.3.4
 httpx==0.28.1
 spacy==3.8.7
 en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+onnxruntime==1.20.1
+tokenizers==0.21.0
