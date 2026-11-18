@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
@@ -89,3 +91,38 @@ class SummaryOut(BaseModel):
     sentences: list[str]
     num_texts: int
     num_sentences: int
+
+
+class PipelineItem(BaseModel):
+    feedback_id: int | None
+    text: str
+    cleaned_text: str
+    language: str
+    sentiment: LabelScore | None
+    emotion: LabelScore | None
+    topics: list[TopicOut]
+    summary: str
+    errors: list[str] = []
+
+
+class PipelineOut(BaseModel):
+    items: list[PipelineItem]
+    batch_summary: str
+
+
+class ResultOut(BaseModel):
+    id: int
+    feedback_id: int
+    text: str
+    cleaned_text: str
+    language: str
+    sentiment: LabelScore
+    emotion: LabelScore
+    topics: list[TopicOut]
+    summary: str
+    created_at: datetime
+
+
+class ResultsOut(BaseModel):
+    total: int
+    results: list[ResultOut]

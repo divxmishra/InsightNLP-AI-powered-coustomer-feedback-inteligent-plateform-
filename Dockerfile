@@ -8,7 +8,8 @@ RUN python export_models.py /models && rm -rf /root/.cache/huggingface
 
 # Stage 2: runtime image (onnxruntime + tokenizers, no PyTorch).
 FROM python:3.11-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PORT=8000 MODELS_DIR=/app/models
+# MALLOC_ARENA_MAX limits glibc memory fragmentation (matters on the 512 MB free tier).
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PORT=8000 MODELS_DIR=/app/models MALLOC_ARENA_MAX=2
 WORKDIR /app
 
 COPY requirements.txt .

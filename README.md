@@ -68,6 +68,21 @@ scored by the frequency of its lemmatized keywords across the whole batch (norma
 the first sentence of each text gets a 25% bonus, duplicates are dropped, and the top sentences are returned in
 their original order.
 
+## Phase 6: PostgreSQL storage
+
+- `POST /pipeline/run` with `{"text": "..."}` or `{"texts": [...]}` runs preprocess, sentiment, emotion, topics and a
+  per-review summary, saves each review, and returns `{"items": [...], "batch_summary": "..."}`.
+- `GET /results?limit=50&offset=0` lists saved results, newest first: `{"total": N, "results": [...]}`.
+- Tables (SQLAlchemy, `app/db.py`): `feedback` (id, text, cleaned_text, language, created_at) and
+  `analysis_results` (id, feedback_id FK, sentiment, sentiment_score, emotion, emotion_score, topics JSON, summary,
+  created_at).
+- **Schema management: create-tables-on-startup** (`Base.metadata.create_all` in the app lifespan), not Alembic.
+  It is simple and enough for a two-table schema; a column change needs a manual migration or a table drop.
+- `DATABASE_URL`: on Render, set it to the Postgres **internal** connection string (`postgres://` is rewritten to
+  the `postgresql+psycopg://` driver). If it is not set, the app uses a local SQLite file (`insightnlp.db`), which
+  on Render is wiped on every deploy/restart.
+- Tests use a throwaway SQLite DB (`tests/conftest.py`).
+
 ### Run locally
 ```bash
 python -m venv .venv

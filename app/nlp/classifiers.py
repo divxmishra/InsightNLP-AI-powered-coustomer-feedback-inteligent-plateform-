@@ -13,6 +13,7 @@ from app.config import get_settings
 from app.nlp.preprocess import apply_hinglish_map, basic_clean
 
 MAX_TOKENS = 256
+BATCH_SIZE = 8  # small inference batches keep peak memory low on a 512 MB host
 
 
 @dataclass
@@ -37,6 +38,12 @@ class OnnxClassifier:
         )
 
     def predict(self, texts: list[str]) -> list[Prediction]:
+        out: list[Prediction] = []
+        for i in range(0, len(texts), BATCH_SIZE):
+            out.extend(self._predict_batch(texts[i : i + BATCH_SIZE]))
+        return out
+
+    def _predict_batch(self, texts: list[str]) -> list[Prediction]:
         if not texts:
             return []
         enc = self.tokenizer.encode_batch(texts)
