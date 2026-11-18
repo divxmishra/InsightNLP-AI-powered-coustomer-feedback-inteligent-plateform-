@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InsightNLP Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#667085; --line:#e4e7ec;
+          --pos:#2e9e6b; --neg:#d0473a; --accent:#3d63dd; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:20px 28px; background:var(--card); border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  header h1 { margin:0; font-size:20px; }
+  header span { color:var(--muted); font-size:13px; }
+  main { max-width:1200px; margin:0 auto; padding:24px; display:grid; gap:20px; grid-template-columns:repeat(12, 1fr); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px; }
+  .card h2 { margin:0 0 12px; font-size:15px; }
+  .span-12 { grid-column:span 12; } .span-6 { grid-column:span 6; } .span-4 { grid-column:span 4; } .span-8 { grid-column:span 8; }
+  @media (max-width: 860px) { .span-6,.span-4,.span-8 { grid-column:span 12; } }
+  .kpis { display:flex; gap:28px; flex-wrap:wrap; }
+  .kpi b { display:block; font-size:26px; } .kpi span { color:var(--muted); font-size:13px; }
+  textarea { width:100%; min-height:110px; font:inherit; padding:10px; border:1px solid var(--line); border-radius:8px; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:9px 16px; font:inherit; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  .hint { color:var(--muted); font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; }
+  .tag { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; background:#eef1f6; margin:1px 2px 1px 0; }
+  .positive { color:var(--pos); font-weight:600; } .negative { color:var(--neg); font-weight:600; }
+  #summary { line-height:1.6; margin:0; }
+  #status { margin-left:10px; }
+  .chart-box { position:relative; height:240px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>InsightNLP: Customer Feedback Dashboard</h1>
+  <span>English + Hinglish · sentiment · emotion · topics · summary</span>
+</header>
+<main>
+  <section class="card span-12">
+    <div class="kpis">
+      <div class="kpi"><b id="k-total">0</b><span>Analyzed reviews</span></div>
+      <div class="kpi"><b id="k-pos">0%</b><span>Positive</span></div>
+      <div class="kpi"><b id="k-neg">0%</b><span>Negative</span></div>
+      <div class="kpi"><b id="k-topic">-</b><span>Top topic</span></div>
+    </div>
+  </section>
+
+  <section class="card span-12">
+    <h2>Analyze new feedback</h2>
+    <textarea id="input" placeholder="One review per line, e.g.&#10;Delivery was late and support was rude.&#10;Product bahut achha hai, paisa vasool!"></textarea>
+    <p style="margin:10px 0 0"><button id="run">Run pipeline</button><span id="status" class="hint"></span></p>
+  </section>
+
+  <section class="card span-4"><h2>Sentiment</h2><div class="chart-box"><canvas id="c-sent"></canvas></div></section>
+  <section class="card span-4"><h2>Emotion</h2><div class="chart-box"><canvas id="c-emo"></canvas></div></section>
+  <section class="card span-4"><h2>Top topics</h2><div class="chart-box"><canvas id="c-topic"></canvas></div></section>
+
+  <section class="card span-12"><h2>Summary of recent feedback</h2><p id="summary" class="hint">No data yet.</p></section>
+
+  <section class="card span-12">
+    <h2>Recent reviews</h2>
+    <table>
+      <thead><tr><th>Review</th><th>Lang</th><th>Sentiment</th><th>Emotion</th><th>Topics</th></tr></thead>
+      <tbody id="recent"><tr><td colspan="5" class="hint">No reviews yet. Run the pipeline above.</td></tr></tbody>
+    </table>
+  </section>
+</main>
+<script>
+const charts = {};
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const COLORS = { positive:'#2e9e6b', negative:'#d0473a' };
+const PALETTE = ['#3d63dd','#e08a2c','#2e9e6b','#b04fbf','#d0473a','#1e9bb5','#8a8f2a','#6b7280','#c2547a','#4c8c4a'];
+
+function drawChart(id, type, counts) {
+  const labels = Object.keys(counts), data = Object.values(counts);
+  const colors = labels.map((l, i) => COLORS[l] || PALETTE[i % PALETTE.length]);
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type,
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
+    options: {
+      maintainAspectRatio: false,
+      indexAxis: type === 'bar' ? 'y' : 'x',
+      plugins: { legend: { display: type !== 'bar', position: 'bottom' } },
+      scales: type === 'bar' ? { x: { beginAtZero: true, ticks: { precision: 0 } } } : {},
+    },
+  });
+}
+
+async function load() {
+  const res = await fetch('/results/stats');
+  if (!res.ok) { document.getElementById('summary').textContent = 'Could not load stats (' + res.status + ').'; return; }
+  const s = await res.json();
+  const total = s.total || 0;
+  const pct = k => total ? Math.round(100 * (s.sentiment_counts[k] || 0) / total) + '%' : '0%';
+  document.getElementById('k-total').textContent = total;
+  document.getElementById('k-pos').textContent = pct('positive');
+  document.getElementById('k-neg').textContent = pct('negative');
+  document.getElementById('k-topic').textContent = s.top_topics.length ? s.top_topics[0].topic : '-';
+
+  drawChart('c-sent', 'doughnut', s.sentiment_counts);
+  drawChart('c-emo', 'doughnut', s.emotion_counts);
+  drawChart('c-topic', 'bar', Object.fromEntries(s.top_topics.map(t => [t.topic, t.count])));
+
+  document.getElementById('summary').textContent = s.summary || 'No data yet.';
+  document.getElementById('summary').className = s.summary ? '' : 'hint';
+  const rows = s.recent.map(r => `<tr>
+      <td>${esc(r.text)}</td><td>${esc(r.language)}</td>
+      <td class="${esc(r.sentiment.label)}">${esc(r.sentiment.label)} (${r.sentiment.score.toFixed(2)})</td>
+      <td>${esc(r.emotion.label)}</td>
+      <td>${r.topics.map(t => `<span class="tag">${esc(t.topic)}</span>`).join('') || '<span class="hint">-</span>'}</td>
+    </tr>`).join('');
+  document.getElementById('recent').innerHTML = rows || '<tr><td colspan="5" class="hint">No reviews yet. Run the pipeline above.</td></tr>';
+}
+
+document.getElementById('run').addEventListener('click', async () => {
+  const texts = document.getElementById('input').value.split('\n').map(t => t.trim()).filter(Boolean);
+  const status = document.getElementById('status'), btn = document.getElementById('run');
+  if (!texts.length) { status.textContent = 'Enter at least one review.'; return; }
+  btn.disabled = true; status.textContent = 'Running...';
+  try {
+    const res = await fetch('/pipeline/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ texts }) });
+    const body = await res.json();
+    if (!res.ok) throw new Error(JSON.stringify(body.detail || body));
+    status.textContent = `Analyzed ${body.items.length} review(s).`;
+    document.getElementById('input').value = '';
+    await load();
+  } catch (e) {
+    status.textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+load();
+</script>
+</body>
+</html>

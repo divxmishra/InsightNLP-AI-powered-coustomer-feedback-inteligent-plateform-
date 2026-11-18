@@ -83,6 +83,15 @@ their original order.
   on Render is wiped on every deploy/restart.
 - Tests use a throwaway SQLite DB (`tests/conftest.py`).
 
+## Phase 7: HTML dashboard
+
+- `GET /` serves `app/static/index.html` (plain HTML + fetch, Chart.js 4 from the jsDelivr CDN).
+- It shows KPIs (total, % positive, % negative, top topic), sentiment and emotion doughnuts, a top-topics bar chart,
+  a summary of the 50 most recent reviews, and the 10 most recent reviews. A text box runs `/pipeline/run`
+  (one review per line) and refreshes the page.
+- Data comes from `GET /results/stats`: `total`, `sentiment_counts`, `emotion_counts`, `top_topics` (number of
+  reviews mentioning each topic, over the latest 1000), `recent`, `summary`.
+
 ### Run locally
 ```bash
 python -m venv .venv

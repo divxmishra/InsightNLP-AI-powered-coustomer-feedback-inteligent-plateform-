@@ -126,3 +126,17 @@ class ResultOut(BaseModel):
 class ResultsOut(BaseModel):
     total: int
     results: list[ResultOut]
+
+
+class TopicCount(BaseModel):
+    topic: str
+    count: int
+
+
+class StatsOut(BaseModel):
+    total: int
+    sentiment_counts: dict[str, int]
+    emotion_counts: dict[str, int]
+    top_topics: list[TopicCount]
+    recent: list[ResultOut]
+    summary: str

@@ -6,7 +6,7 @@ from app import __version__
 from app.db import init_db
 from app.nlp.classifiers import get_emotion_model, get_sentiment_model
 from app.nlp.preprocess import get_nlp
-from app.routers import analyze, feedback, pipeline
+from app.routers import analyze, dashboard, feedback, pipeline
 
 
 @asynccontextmanager
@@ -23,6 +23,7 @@ app = FastAPI(title="InsightNLP", version=__version__, lifespan=lifespan)
 app.include_router(feedback.router)
 app.include_router(analyze.router)
 app.include_router(pipeline.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/health")
