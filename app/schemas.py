@@ -78,3 +78,14 @@ class TopicOut(BaseModel):
 class TopicsOut(BaseModel):
     num_texts: int
     topics: list[TopicOut]
+
+
+class SummaryIn(TextsIn):
+    max_sentences: int = Field(3, ge=1, le=10)
+
+
+class SummaryOut(BaseModel):
+    summary: str
+    sentences: list[str]
+    num_texts: int
+    num_sentences: int

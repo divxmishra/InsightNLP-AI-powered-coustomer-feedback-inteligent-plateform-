@@ -58,6 +58,16 @@ python scripts/export_models.py models   # writes models/sentiment and models/em
   keywords ("customer service", "value for money") match the cleaned, Hinglish-mapped text.
 - `count` is the number of keyword hits; a phrase and a word inside it can both count.
 
+## Phase 5: Summarization
+
+`POST /analyze/summary` with `{"text": "..."}` or `{"texts": [...], "max_sentences": 3}` (1 to 10) returns
+`{"summary": "...", "sentences": [...], "num_texts": 25, "num_sentences": 35}`.
+
+Extractive and lightweight (`app/nlp/summarize.py`, no LLM): texts are split into sentences, each sentence is
+scored by the frequency of its lemmatized keywords across the whole batch (normalized by sqrt of its length),
+the first sentence of each text gets a 25% bonus, duplicates are dropped, and the top sentences are returned in
+their original order.
+
 ### Run locally
 ```bash
 python -m venv .venv

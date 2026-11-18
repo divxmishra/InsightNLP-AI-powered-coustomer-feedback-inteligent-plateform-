@@ -3,8 +3,18 @@ from dataclasses import asdict
 from fastapi import APIRouter
 
 from app.nlp.classifiers import analyze_sentiment_emotion
+from app.nlp.summarize import summarize
 from app.nlp.topics import extract_topics
-from app.schemas import FeedbackIn, LabelScore, SentimentEmotionOut, TextsIn, TopicOut, TopicsOut
+from app.schemas import (
+    FeedbackIn,
+    LabelScore,
+    SentimentEmotionOut,
+    SummaryIn,
+    SummaryOut,
+    TextsIn,
+    TopicOut,
+    TopicsOut,
+)
 
 router = APIRouter(prefix="/analyze", tags=["analyze"])
 
@@ -22,3 +32,8 @@ def sentiment_emotion(payload: FeedbackIn) -> SentimentEmotionOut:
 def topics(payload: TextsIn) -> TopicsOut:
     texts = payload.all_texts()
     return TopicsOut(num_texts=len(texts), topics=[TopicOut(**asdict(m)) for m in extract_topics(texts)])
+
+
+@router.post("/summary", response_model=SummaryOut)
+def summary(payload: SummaryIn) -> SummaryOut:
+    return SummaryOut(**asdict(summarize(payload.all_texts(), payload.max_sentences)))
