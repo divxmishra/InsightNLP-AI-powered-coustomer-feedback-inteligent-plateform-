@@ -1,0 +1,12 @@
+{
+  "delivery": ["delivery", "deliver", "shipping", "ship", "shipment", "courier", "late", "delay", "arrive", "dispatch", "tracking", "on time", "delivery boy"],
+  "pricing": ["price", "pricing", "cost", "expensive", "cheap", "overprice", "costly", "value for money", "worth", "discount", "offer", "affordable", "rate"],
+  "quality": ["quality", "durable", "material", "build", "defective", "broken", "damage", "damaged", "fake", "original", "genuine", "sturdy", "flimsy", "cheap quality"],
+  "support": ["support", "customer service", "customer care", "service", "staff", "agent", "helpful", "rude", "response", "respond", "complaint", "call", "helpline"],
+  "packaging": ["packaging", "package", "packing", "box", "pack", "seal", "wrap"],
+  "returns_refunds": ["return", "refund", "replacement", "replace", "exchange", "money back", "cancel", "cancellation"],
+  "payment": ["payment", "pay", "upi", "card", "cash on delivery", "cod", "transaction", "charge", "emi", "wallet"],
+  "app_experience": ["app", "website", "login", "checkout", "crash", "bug", "interface", "ui", "slow app", "search", "update"],
+  "performance": ["battery", "performance", "speed", "fast", "slow", "lag", "heat", "charge", "work", "stop working"],
+  "size_fit": ["size", "fit", "small", "large", "tight", "loose", "measurement"]
+}

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class FeedbackIn(BaseModel):
@@ -44,3 +44,37 @@ class LabelScore(BaseModel):
 class SentimentEmotionOut(BaseModel):
     sentiment: LabelScore
     emotion: LabelScore
+
+
+MAX_BATCH = 1000
+
+
+class TextsIn(BaseModel):
+    """Either a single `text` or a list of `texts` (each 1 to 2000 chars)."""
+
+    text: str | None = Field(None, min_length=1, max_length=2000)
+    texts: list[str] | None = Field(None, min_length=1, max_length=MAX_BATCH)
+
+    @model_validator(mode="after")
+    def check(self) -> "TextsIn":
+        items = self.all_texts()
+        if not items:
+            raise ValueError("provide 'text' or a non-empty 'texts' list")
+        for t in items:
+            if not t.strip() or len(t) > 2000:
+                raise ValueError("each text must be 1 to 2000 non-blank characters")
+        return self
+
+    def all_texts(self) -> list[str]:
+        return ([self.text] if self.text is not None else []) + list(self.texts or [])
+
+
+class TopicOut(BaseModel):
+    topic: str
+    count: int
+    keywords: list[str]
+
+
+class TopicsOut(BaseModel):
+    num_texts: int
+    topics: list[TopicOut]

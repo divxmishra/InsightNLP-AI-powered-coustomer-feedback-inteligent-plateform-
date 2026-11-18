@@ -47,6 +47,17 @@ pip install -r requirements-export.txt
 python scripts/export_models.py models   # writes models/sentiment and models/emotion (git-ignored)
 ```
 
+## Phase 4: Topic extraction
+
+`POST /analyze/topics` with `{"text": "..."}` or `{"texts": ["...", "..."]}` (up to 1000) returns
+`{"num_texts": 2, "topics": [{"topic": "delivery", "count": 3, "keywords": ["delivery", "late"]}, ...]}`, sorted by count.
+
+- Rule-based: keyword lists per topic in `app/nlp/topics.json` (delivery, pricing, quality, support, packaging,
+  returns_refunds, payment, app_experience, performance, size_fit). Edit the JSON to add topics.
+- Single-word keywords match the spaCy lemmas from Phase 2 (so "delivered" matches "deliver"); multi-word
+  keywords ("customer service", "value for money") match the cleaned, Hinglish-mapped text.
+- `count` is the number of keyword hits; a phrase and a word inside it can both count.
+
 ### Run locally
 ```bash
 python -m venv .venv
